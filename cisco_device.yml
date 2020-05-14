@@ -1,0 +1,45 @@
+---
+# creatre  a directory named with timestamp
+- name: create directory named with timestamp
+  hosts: localhost
+  connection: local
+
+  tasks:
+   - name: create directory
+     file:
+       path: "./ansible_output/show_result_{{ansible_date_time.date}}"
+       state: directory
+       mode: 0777
+       recurse: yes
+
+# backup device configuration and other information 
+- name: netdevops1
+  hosts: GA
+  connection: local
+
+  tasks:
+   - name: show commands
+     ios_command:
+       commands:
+         -  show run
+         -  show version
+         -  show env all
+
+     register: print_output
+   - debug: var=print_output.stdout_lines
+
+   - name: save output session to files_show_run
+     copy:
+       content: "{{ print_output.stdout[0] }}"
+       dest: "./ansible_output/show_result_{{ansible_date_time.date}}/{{ inventory_hostname }}_show_run_{{ansible_date_time.iso8601_basic}}.txt"
+
+   - name: save output session to files_show_ver
+     copy:
+       content: "{{ print_output.stdout[1] }}"
+       dest: "./ansible_output/show_result_{{ansible_date_time.date}}/{{ inventory_hostname }}_show_ver_{{ansible_date_time.iso8601_basic}}.txt"
+
+
+   - name: save output session to files_show_env
+     copy:
+       content: "{{ print_output.stdout[2] }}"
+       dest: "./ansible_output/show_result_{{ansible_date_time.date}}/{{ inventory_hostname }}_show_env_{{ansible_date_time.iso8601_basic}}.txt"
